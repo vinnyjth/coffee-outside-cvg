@@ -1,0 +1,22 @@
+body {
+  background-color: rgb(245, 245, 245);
+}
+
+.content {
+  margin: -10rem auto 0 auto;
+}
+
+.box {
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 2px 0 0 #e5e5e5;
+  padding: 3em;
+}
+
+.cover {
+  height: 40vh;
+}
+
+.card-title {
+  
+}
