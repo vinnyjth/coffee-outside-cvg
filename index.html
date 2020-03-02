@@ -35,7 +35,7 @@ layout: default
       <h3 class="f-headline w-100 f2 tc lh-solid black-70">Past Locations</h3>
        <div id="past-location-map"></div>
         <script>
-          const mymap = L.map('past-location-map').setView([39.10, -84.51], 12);
+          const mymap = L.map('past-location-map').setView([39.119, -84.51], 12);
           L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
               attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
               maxZoom: 18,
@@ -48,7 +48,7 @@ layout: default
           let marker = null;
           {% for location in site.data.past_locations %}
             marker = L.marker([{{ location.x }}, {{ location.y }}]).addTo(mymap);
-            marker.bindPopup("<b>{{ location.name }}</b>")
+            marker.bindPopup("<b>{{ location.name }}</b><br /><a target='_blank' href='{{location.instagram}}'>Instagram</a>")
           {% endfor %}
         </script>
       </div>
