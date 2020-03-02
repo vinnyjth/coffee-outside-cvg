@@ -19,6 +19,7 @@ body {
 
 .card-title {
   font-weight: lighter;
+  overflow-wrap: break-word;
 }
 
 .details-body strong {
