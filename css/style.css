@@ -33,4 +33,9 @@ body {
   font-size: 1.2rem;
 }
 
+.emoji {
+  width: 2rem;
+  height: 2rem;
+}
+
 #past-location-map { height: 600px; }
