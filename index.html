@@ -9,10 +9,62 @@ layout: default
   <div class="cover bg-center" style="background-image: url(/assets/landing-image.jpg);">
 <!--     <h1 class="f-headline w-100 tc lh-solid card-title black-70 mt0">#coffeeoutsidecvg</h1> -->
   </div>
-  <div class="fl w-100 relative pa2">
-    <div class="absolute fl w-70 pa2 content left-0 right-0 box">
+  <div class="w-100 pa2">
+    <div class="w-70 pa2 content box">
       <h1 class="f-headline w-100 tc lh-solid card-title black-70">#coffeeoutsidecvg</h1>
-      <hr class="mh5">
+      <hr class="mh5 mb5">
+      <div class="details-body mh4">
+        <p>
+          <strong>What?</strong> ... A weekly gathering of outdoor loving, bike riding, near-CVG-living, early rising, human beings.
+        </p>
+        <p>
+          <strong>When?</strong> ... every Friday, from 7:00am to 8:30am
+        </p>
+        <p>
+          <strong>Where?</strong> ... within a few miles of Cincinnati. Each weeks's location is posted by Thursday on <a href="https://www.instagram.com/commuted.sentence/">Instagram</a>. See the map for past locations.
+        </p>
+        <p>
+          <strong>What do I bring?</strong> ... Yourself! Regulars normally bring coffee or snacks to share, but don't let that intimidate you from coming. Most attendees are also on bikes, but we won't stop you from walking.
+        </p>
+        <div class="w-100 tc">
+<a class="f3 mb3 no-underline black bg-animate hover-bg-black hover-white inline-flex items-center pa3 ba border-box mr4" href="https://www.instagram.com/commuted.sentence/">Find out more</a>
+        </div>
+      </div>
+    </div>
+    <div class="w-70 pa2 box mv4 center">
+      <h3 class="f-headline w-100 f2 tc lh-solid black-70">Past Locations</h3>
+       <div id="past-location-map"></div>
+        <script>
+          const mymap = L.map('past-location-map').setView([39.10, -84.51], 12);
+          L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+              attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+              maxZoom: 18,
+              id: 'mapbox/outdoors-v11',
+              tileSize: 512,
+              zoomOffset: -1,
+              accessToken: 'pk.eyJ1IjoieXVuZ3ZpbmNlbnpvIiwiYSI6ImNqY3F4M2Y1ZzA2cnMyeGtjNGJuNjg1cWcifQ.zzM2qMUtbq7pg1jL7n5CQg'
+          }).addTo(mymap);
+
+          let marker = null;
+          {% for location in site.data.past_locations %}
+            marker = L.marker([{{ location.x }}, {{ location.y }}]).addTo(mymap);
+            marker.bindPopup("<b>{{ location.name }}</b>")
+          {% endfor %}
+        </script>
+      </div>
+    </div>
+    <div class="w-70 box mv4 center">
+      <div class="cf">
+        {% for asset in site.static_files %}
+          {% if asset.path contains "thumbnails" %}
+          <div class="fl w-50 w-25-ns">
+            <a href="/assets/full_size/{{ asset.name }}" data-lightbox="past-events" class="db aspect-ratio aspect-ratio--1x1 dim">
+              <span role="img" aria-label="Beyoncé" style="background-image:url('{{ asset.path }}'  );" class="bg-center cover aspect-ratio--object"></span>
+            </a>
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
     </div>
   </div>
 </div>

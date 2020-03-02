@@ -18,5 +18,18 @@ body {
 }
 
 .card-title {
-  
+  font-weight: lighter;
 }
+
+.details-body strong {
+  font-size: 1.8rem;
+  font-weight: lighter;
+  color: rgb(100, 100, 100);
+}
+
+.details-body p {
+  margin-bottom: 2rem;
+  font-size: 1.2rem;
+}
+
+#past-location-map { height: 400px; }
