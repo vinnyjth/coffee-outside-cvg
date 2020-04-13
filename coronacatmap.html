@@ -19,8 +19,29 @@ layout: none
       margin-bottom: 1rem;
       border-bottom: 2px solid;
     }
+    #slider-box {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      margin: 1rem 2rem;
+      padding: 1rem 2rem;
+      background-color: white;
+    }
+    #slider {
+      width: 100%;
+    }
     .name {
       font-size: 1.2rem;
+    }
+    .marker {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 1px solid white;
+      text-align: center;
+      color: white;
     }
   </style>
 </head>
@@ -33,6 +54,9 @@ layout: none
     {% endfor %}
     </ol>
   </div>
+  <div id="slider-box">
+    <input id='slider' type='range' min='0' max='6389' step='1' value='0' />
+  </div>
 <script>
   mapboxgl.accessToken = 'pk.eyJ1IjoieXVuZ3ZpbmNlbnpvIiwiYSI6ImNqY3F4M2Y1ZzA2cnMyeGtjNGJuNjg1cWcifQ.zzM2qMUtbq7pg1jL7n5CQg';
   var map = new mapboxgl.Map({
@@ -41,6 +65,7 @@ layout: none
     center: [-84.5120, 39.1150],
     zoom: 13,
   });
+  const markers = {};
   map.on('load', () => {
     {% for route in site.data.routes %}
       map.addSource('{{route.id}}', {
@@ -61,14 +86,39 @@ layout: none
           'line-width': 3
         }
       });
+
+      fetch('./gpx-files/route_timings/{{route.timingData}}').then(data => {
+        return data.json();
+      }).then(data => {
+        let el;
+        el = document.createElement('div');
+        el.innerHTML = "{{route.name}}".split('')[0];
+        el.className = 'marker';
+        el.id = '{{route.id}}'
+        el.style.backgroundColor = '{{route.color}}';
+        const marker = new mapboxgl.Marker(el)
+          .setLngLat([data[0].point.lng, data[0].point.lat])
+          .addTo(map);
+        markers['{{route.id}}'] = { marker: marker, data: data };
+      });
     {% endfor %}
   });
   document.querySelectorAll('[data-route-toggle]').forEach((el) => {
     el.addEventListener('change', (e) => {
       const visibility = e.target.checked ? 'visible' : 'none';
-      console.log(map.getLayoutProperty(e.target.getAttribute('data-route-id'), 'visibility'))
-      map.setLayoutProperty(e.target.getAttribute('data-route-id'), 'visibility', visibility);
-      console.log('changed');
+      const opacity = e.target.checked ? 1 : 0;
+      const id = e.target.getAttribute('data-route-id');
+      map.setLayoutProperty(id, 'visibility', visibility);
+      document.getElementById(id).style.opacity = opacity;
+    });
+  })
+  document.getElementById('slider').addEventListener('input', (e) => {
+    const sliderTime = parseInt(e.target.value, 10);
+    Object.keys(markers).forEach((key) => {
+      const lastTime = markers[key].data.find(({ time }) => (time >= sliderTime));
+      if (lastTime){
+        markers[key].marker.setLngLat([lastTime.point.lng, lastTime.point.lat]);
+      }
     });
   })
 </script>
