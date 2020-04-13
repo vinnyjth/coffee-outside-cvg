@@ -33,7 +33,7 @@
   time: "1:10:48"
   distance: 18.85
 
-- name: TanziPants
+- name: Tanner
   routeName: CoronaCat.geojson
   color: "#5539ec"
   id: tanzi
@@ -46,3 +46,10 @@
   id: daniel
   distance: 19.27
   time: "1:33:21"
+
+- name: Charlotte
+  routeName: Charlotte.geojson
+  color: "#2ba8f5"
+  id: charlotte
+  distance: 23.74
+  time: "1:37:14"
