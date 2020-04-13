@@ -1,0 +1,48 @@
+- name: Evan
+  routeName: CoronaCat.geojson
+  color: "#de2c6e"
+  id: evan
+  distance: 18.79
+  time: "58:34"
+
+- name: Hannah
+  routeName: Coronacat_race_.geojson
+  color: "#86630f"
+  id: hannah
+  time: "1:03:04"
+  distance: 19.39
+
+- name: Michael
+  routeName: Corona_Cat.geojson
+  color: "#600223"
+  id: michael
+  time: "1:07:58"
+  distance: 19.51
+
+- name: Vincent
+  routeName: CoronaCatVinccent.geojson
+  color: "#342d8c"
+  id: vincent
+  time: "1:08:04"
+  distance: 19.17
+
+- name: Jesse
+  routeName: CORONACAT_Alleycat_2020.geojson
+  color: "#039c3c"
+  id: jesse
+  time: "1:10:48"
+  distance: 18.85
+
+- name: TanziPants
+  routeName: CoronaCat.geojson
+  color: "#5539ec"
+  id: tanzi
+  time: "1:14:53"
+  distance: 19.84
+
+- name: Daniel
+  routeName: Alleycat_Covid_19_Coronacat.geojson
+  color: "#8427cd"
+  id: daniel
+  distance: 19.27
+  time: "1:33:21"

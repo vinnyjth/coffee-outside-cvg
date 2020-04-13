@@ -1,0 +1,76 @@
+---
+layout: none
+---
+
+<!doctype html>
+<html>
+<head>
+  <script src='https://api.mapbox.com/mapbox-gl-js/v1.9.1/mapbox-gl.js'></script>
+  <link href='https://api.mapbox.com/mapbox-gl-js/v1.9.1/mapbox-gl.css' rel='stylesheet' />
+  <style>
+    #sidebar {
+      position: fixed;
+      margin: 1rem 2rem;
+      padding: 1rem 2rem 1rem 0;
+      top: 0;
+      background-color: white;
+    }
+    #sidebar ol li {
+      margin-bottom: 1rem;
+      border-bottom: 2px solid;
+    }
+    .name {
+      font-size: 1.2rem;
+    }
+  </style>
+</head>
+<body>
+  <div id='map' style='width: 100%; height: 1000px;'></div>
+  <div id="sidebar">
+    <ol>
+    {% for route in site.data.routes %}
+      <li style="border-bottom-color: {{route.color}};"><span class="name">{{route.name}}</span> <input data-route-id="{{route.id}}" checked data-route-toggle type="checkbox" /><br>Time: {{route.time}}<br>Distance: {{route.distance}}</li>
+    {% endfor %}
+    </ol>
+  </div>
+<script>
+  mapboxgl.accessToken = 'pk.eyJ1IjoieXVuZ3ZpbmNlbnpvIiwiYSI6ImNqY3F4M2Y1ZzA2cnMyeGtjNGJuNjg1cWcifQ.zzM2qMUtbq7pg1jL7n5CQg';
+  var map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/streets-v9',
+    center: [-84.5120, 39.1150],
+    zoom: 13,
+  });
+  map.on('load', () => {
+    {% for route in site.data.routes %}
+      map.addSource('{{route.id}}', {
+        type: 'geojson',
+        data: '/gpx-files/{{route.routeName}}'
+      });
+      map.addLayer({
+        'id': '{{route.id}}',
+        'type': 'line',
+        'source': '{{route.id}}',
+        'layout': {
+          'visibility': 'visible',
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
+        'paint': {
+          'line-color': '{{route.color}}',
+          'line-width': 3
+        }
+      });
+    {% endfor %}
+  });
+  document.querySelectorAll('[data-route-toggle]').forEach((el) => {
+    el.addEventListener('change', (e) => {
+      const visibility = e.target.checked ? 'visible' : 'none';
+      console.log(map.getLayoutProperty(e.target.getAttribute('data-route-id'), 'visibility'))
+      map.setLayoutProperty(e.target.getAttribute('data-route-id'), 'visibility', visibility);
+      console.log('changed');
+    });
+  })
+</script>
+</body>
+</html>
