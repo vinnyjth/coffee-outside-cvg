@@ -46,6 +46,14 @@
   distance: 19.84
   timingData: CoronacatTanner_normalized.json
 
+- name: Ders
+  routeName: CoronacatAndreas.geojson
+  color: "#ec3939"
+  id: ders
+  time: "1:22:32"
+  distance: 21.64
+  timingData: CoronacatAndreas_normalized.json
+
 - name: Daniel
   routeName: Alleycat_Covid_19_Coronacat.geojson
   color: "#8427cd"
@@ -61,3 +69,11 @@
   distance: 23.74
   time: "1:37:14"
   timingData: CoronacatCharlotte_normalized.json
+
+- name: Brian (Organizer)
+  routeName: Brian.geojson
+  color: "#e3f700"
+  id: brian
+  distance: 18.89
+  time: "1:14:36"
+  timingData: CoronacatBrian_normalized.json

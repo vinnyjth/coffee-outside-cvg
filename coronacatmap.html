@@ -13,7 +13,11 @@ layout: none
       margin: 1rem 2rem;
       padding: 1rem 2rem 1rem 0;
       top: 0;
+      left: 0;
       background-color: white;
+      max-height: 90%;
+      overflow-y: scroll;
+      border: 1px solid grey;
     }
     #sidebar ol li {
       margin-bottom: 1rem;
@@ -27,6 +31,8 @@ layout: none
       margin: 1rem 2rem;
       padding: 1rem 2rem;
       background-color: white;
+      overflow: scroll;
+      border: 1px solid grey;
     }
     #slider {
       width: 100%;
@@ -43,19 +49,22 @@ layout: none
       text-align: center;
       color: white;
     }
+    html, body {
+      height: 100%;
+    }
   </style>
 </head>
 <body>
-  <div id='map' style='width: 100%; height: 1000px;'></div>
+  <div id='map' style='width: 100%; height: 100%; display: block'></div>
   <div id="sidebar">
     <ol>
     {% for route in site.data.routes %}
-      <li style="border-bottom-color: {{route.color}};"><span class="name">{{route.name}}</span> <input data-route-id="{{route.id}}" checked data-route-toggle type="checkbox" /><br>Time: {{route.time}}<br>Distance: {{route.distance}}</li>
+      <li style="border-bottom-color: {{route.color}};"><span class="name">{{route.name}}</span> <input data-route-id="{{route.id}}" checked disabled data-route-toggle type="checkbox" /><br>Time: {{route.time}}<br>Distance: {{route.distance}}</li>
     {% endfor %}
     </ol>
   </div>
   <div id="slider-box">
-    <input id='slider' type='range' min='0' max='6389' step='1' value='0' />
+    <input id='slider' disabled type='range' min='0' max='6389' step='1' value='0' />
   </div>
 <script>
   mapboxgl.accessToken = 'pk.eyJ1IjoieXVuZ3ZpbmNlbnpvIiwiYSI6ImNqY3F4M2Y1ZzA2cnMyeGtjNGJuNjg1cWcifQ.zzM2qMUtbq7pg1jL7n5CQg';
@@ -121,6 +130,7 @@ layout: none
       }
     });
   })
+  document.querySelectorAll('input').forEach((el) => { el.removeAttribute('disabled')});
 </script>
 </body>
 </html>
