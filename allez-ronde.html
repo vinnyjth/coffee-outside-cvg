@@ -74,6 +74,7 @@ layout: none
     zoom: 12,
   });
   const markers = {};
+  let maxTime = 0;
   map.on('load', () => {
     {% for route in site.data.allez_ronde_routes %}
       map.addSource('{{route.id}}', {
@@ -108,6 +109,13 @@ layout: none
           .setLngLat([data[0].point.lng, data[0].point.lat])
           .addTo(map);
         markers['{{route.id}}'] = { marker: marker, data: data };
+
+        const routeLongest = data[data.length -1].time;
+        if (routeLongest > maxTime){
+          maxTime = routeLongest;
+          // lol.... need to set this only once eventually. this is why you don't mix JS / inline ruby
+          document.getElementById('slider').setAttribute('max', maxTime)
+        }
       });
     {% endfor %}
   });
