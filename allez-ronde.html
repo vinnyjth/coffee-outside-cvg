@@ -1,0 +1,135 @@
+---
+layout: none
+---
+
+<!doctype html>
+<html>
+<head>
+  <script src='https://api.mapbox.com/mapbox-gl-js/v1.9.1/mapbox-gl.js'></script>
+  <link href='https://api.mapbox.com/mapbox-gl-js/v1.9.1/mapbox-gl.css' rel='stylesheet' />
+  <style>
+    #sidebar {
+      position: fixed;
+      margin: 1rem 2rem;
+      padding: 1rem 2rem 1rem 0;
+      top: 0;
+      left: 0;
+      background-color: white;
+      max-height: 90%;
+      overflow-y: scroll;
+      border: 1px solid grey;
+    }
+    #sidebar ol li {
+      margin-bottom: 1rem;
+      border-bottom: 2px solid;
+    }
+    #slider-box {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      margin: 1rem 2rem;
+      padding: 1rem 2rem;
+      background-color: white;
+      border: 1px solid grey;
+    }
+    #slider {
+      width: 100%;
+    }
+    .name {
+      font-size: 1.2rem;
+    }
+    .marker {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 1px solid white;
+      text-align: center;
+      color: white;
+    }
+    html, body {
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div id='map' style='width: 100%; height: 100%; display: block'></div>
+  <div id="sidebar">
+    <ol>
+    {% for route in site.data.allez_ronde_routes %}
+      <li style="border-bottom-color: {{route.color}};"><span class="name">{{route.name}}</span> <input data-route-id="{{route.id}}" checked disabled data-route-toggle type="checkbox" /><br>Time: {{route.time}}<!-- <br>Distance: {{route.distance}} --></li>
+    {% endfor %}
+    </ol>
+  </div>
+  <div id="slider-box">
+    <input id='slider' disabled type='range' min='0' max='6389' step='1' value='0' />
+  </div>
+<script>
+  mapboxgl.accessToken = 'pk.eyJ1IjoieXVuZ3ZpbmNlbnpvIiwiYSI6ImNqY3F4M2Y1ZzA2cnMyeGtjNGJuNjg1cWcifQ.zzM2qMUtbq7pg1jL7n5CQg';
+  var map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/streets-v9',
+    center: [-84.545061, 39.144],
+    zoom: 12,
+  });
+  const markers = {};
+  map.on('load', () => {
+    {% for route in site.data.allez_ronde_routes %}
+      map.addSource('{{route.id}}', {
+        type: 'geojson',
+        data: '/raw_activity/{{route.routeName}}'
+      });
+      map.addLayer({
+        'id': '{{route.id}}',
+        'type': 'line',
+        'source': '{{route.id}}',
+        'layout': {
+          'visibility': 'visible',
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
+        'paint': {
+          'line-color': '{{route.color}}',
+          'line-width': 3
+        }
+      });
+
+      fetch('./raw_activity/{{route.timingData}}').then(data => {
+        return data.json();
+      }).then(data => {
+        let el;
+        el = document.createElement('div');
+        el.innerHTML = "{{route.name}}".split('')[0];
+        el.className = 'marker';
+        el.id = '{{route.id}}'
+        el.style.backgroundColor = '{{route.color}}';
+        const marker = new mapboxgl.Marker(el)
+          .setLngLat([data[0].point.lng, data[0].point.lat])
+          .addTo(map);
+        markers['{{route.id}}'] = { marker: marker, data: data };
+      });
+    {% endfor %}
+  });
+  document.querySelectorAll('[data-route-toggle]').forEach((el) => {
+    el.addEventListener('change', (e) => {
+      const visibility = e.target.checked ? 'visible' : 'none';
+      const opacity = e.target.checked ? 1 : 0;
+      const id = e.target.getAttribute('data-route-id');
+      map.setLayoutProperty(id, 'visibility', visibility);
+      document.getElementById(id).style.opacity = opacity;
+    });
+  })
+  document.getElementById('slider').addEventListener('input', (e) => {
+    const sliderTime = parseInt(e.target.value, 10);
+    Object.keys(markers).forEach((key) => {
+      const lastTime = markers[key].data.find(({ time }) => (time >= sliderTime));
+      if (lastTime){
+        markers[key].marker.setLngLat([lastTime.point.lng, lastTime.point.lat]);
+      }
+    });
+  })
+  document.querySelectorAll('input').forEach((el) => { el.removeAttribute('disabled')});
+</script>
+</body>
+</html>
