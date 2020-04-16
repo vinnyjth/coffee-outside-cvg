@@ -32,9 +32,10 @@ layout: none
       padding: 1rem 2rem;
       background-color: white;
       border: 1px solid grey;
+      display: flex;
     }
     #slider {
-      width: 100%;
+      flex: 1;
     }
     .name {
       font-size: 1.2rem;
@@ -47,6 +48,11 @@ layout: none
       border: 1px solid white;
       text-align: center;
       color: white;
+    }
+    #play-button {
+      margin-right: 1rem;
+      height: 2rem;
+      width: 3rem;
     }
     html, body {
       height: 100%;
@@ -63,7 +69,7 @@ layout: none
     </ol>
   </div>
   <div id="slider-box">
-    <input id='slider' disabled type='range' min='0' max='6389' step='1' value='0' />
+    <button disabled id="play-button">▶</button><input id='slider' disabled type='range' min='0' max='6389' step='1' value='0' />
   </div>
 <script>
   mapboxgl.accessToken = 'pk.eyJ1IjoieXVuZ3ZpbmNlbnpvIiwiYSI6ImNqY3F4M2Y1ZzA2cnMyeGtjNGJuNjg1cWcifQ.zzM2qMUtbq7pg1jL7n5CQg';
@@ -75,6 +81,10 @@ layout: none
   });
   const markers = {};
   let maxTime = 0;
+  let playIcon = '▶'
+  let pauseIcon = '◼'
+  let playing = false;
+
   map.on('load', () => {
     {% for route in site.data.allez_ronde_routes %}
       map.addSource('{{route.id}}', {
@@ -119,6 +129,16 @@ layout: none
       });
     {% endfor %}
   });
+  const slider = document.getElementById('slider')
+  function updateRoutePos(){
+    const sliderTime = parseInt(slider.value, 10);
+    Object.keys(markers).forEach((key) => {
+      const lastTime = markers[key].data.find(({ time }) => (time >= sliderTime));
+      if (lastTime){
+        markers[key].marker.setLngLat([lastTime.point.lng, lastTime.point.lat]);
+      }
+    });
+  }
   document.querySelectorAll('[data-route-toggle]').forEach((el) => {
     el.addEventListener('change', (e) => {
       const visibility = e.target.checked ? 'visible' : 'none';
@@ -128,16 +148,32 @@ layout: none
       document.getElementById(id).style.opacity = opacity;
     });
   })
-  document.getElementById('slider').addEventListener('input', (e) => {
-    const sliderTime = parseInt(e.target.value, 10);
-    Object.keys(markers).forEach((key) => {
-      const lastTime = markers[key].data.find(({ time }) => (time >= sliderTime));
-      if (lastTime){
-        markers[key].marker.setLngLat([lastTime.point.lng, lastTime.point.lat]);
-      }
-    });
+
+  function tick(timestamp){
+    slider.value = parseInt(slider.value, 10) + timestamp / 1000;
+    updateRoutePos();
+    if (playing && slider.value < maxTime) {
+      window.requestAnimationFrame(tick)
+    } else if (slider.value >= maxTime) {
+      slider.value = 0;
+      document.getElementById('play-button').innerHTML = playIcon;
+      playing = false;
+    }
+  }
+
+  slider.addEventListener('input', updateRoutePos)
+  document.getElementById('play-button').addEventListener('click', ({ target }) => {
+    if (playing){
+      playing = false;
+      target.innerHTML = playIcon;
+    } else {
+      playing = true;
+      target.innerHTML = pauseIcon;
+      window.requestAnimationFrame(tick);
+    }
   })
-  document.querySelectorAll('input').forEach((el) => { el.removeAttribute('disabled')});
+
+  document.querySelectorAll('input, button').forEach((el) => { el.removeAttribute('disabled')});
 </script>
 </body>
 </html>
