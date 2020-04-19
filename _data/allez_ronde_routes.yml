@@ -1,20 +1,20 @@
 ---
 - name: Mike Goertemoeller
-  color: "#3ae787"
+  color: "#19deba"
   id: '3318241602'
   distance: 0.0
   time: '3:12:58'
   routeName: 3318241602.geojson
   timingData: 3318241602-timing.json
 - name: James O'Loughlin
-  color: "#3c6bf7"
+  color: "#1c3459"
   id: '3318436209'
   distance: 0.0
   time: '3:18:54'
   routeName: 3318436209.geojson
   timingData: 3318436209-timing.json
 - name: LBM
-  color: "#c6af3c"
+  color: "#90ac53"
   id: '3318571250'
   distance: 0.0
   time: '5:3:27'

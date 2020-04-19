@@ -3,7 +3,7 @@ require "yaml"
 require 'net/http'
 require 'httparty'
 
-COOKIE=""
+COOKIE="strava cookie here for now"
 ROUTE_NAME = "allez_ronde"
 
 activities = [{ id: 3318241602, name: "Mike Goertemoeller" }, { id: 3318436209, name: "James O'Loughlin" }, { id: 3318571250, name: "LBM" }]
@@ -59,3 +59,4 @@ for activity in activities do
 end
 
 File.write("./_data/#{ROUTE_NAME}_routes.yml", activity_yaml.to_yaml)
+File.write("./routes/#{ROUTE_NAME}.json", activity_yaml.to_json)

@@ -23,6 +23,11 @@ layout: none
       margin-bottom: 1rem;
       border-bottom: 2px solid;
     }
+    #sidebar ol li input {
+      float: right;
+      display: inline-block;
+      margin-top: 0.8rem;
+    }
     #slider-box {
       position: fixed;
       bottom: 0;
@@ -57,14 +62,21 @@ layout: none
     html, body {
       height: 100%;
     }
+    #check-all {
+    }
+    .sidebar-header {
+      margin-left: 40px;
+      text-align: right;
+    }
   </style>
 </head>
 <body>
   <div id='map' style='width: 100%; height: 100%; display: block'></div>
   <div id="sidebar">
+    <div class="sidebar-header"><label>Unselect All <input checked type="checkbox" id="check-all" /></label></div>
     <ol>
     {% for route in site.data.allez_ronde_routes %}
-      <li style="border-bottom-color: {{route.color}};"><span class="name">{{route.name}}</span> <input data-route-id="{{route.id}}" checked disabled data-route-toggle type="checkbox" /><br>Time: {{route.time}}<!-- <br>Distance: {{route.distance}} --></li>
+      <li style="border-bottom-color: {{route.color}};"><span class="name">{{route.name}}</span> <input disabled data-route-id="{{route.id}}" checked disabled data-route-toggle type="checkbox" /><br>Time: {{route.time}}<!-- <br>Distance: {{route.distance}} --></li>
     {% endfor %}
     </ol>
   </div>
@@ -86,48 +98,54 @@ layout: none
   let playing = false;
 
   map.on('load', () => {
-    {% for route in site.data.allez_ronde_routes %}
-      map.addSource('{{route.id}}', {
-        type: 'geojson',
-        data: '/raw_activity/{{route.routeName}}'
-      });
-      map.addLayer({
-        'id': '{{route.id}}',
-        'type': 'line',
-        'source': '{{route.id}}',
-        'layout': {
-          'visibility': 'visible',
-          'line-join': 'round',
-          'line-cap': 'round'
-        },
-        'paint': {
-          'line-color': '{{route.color}}',
-          'line-width': 3
-        }
-      });
-
-      fetch('./raw_activity/{{route.timingData}}').then(data => {
+    fetch('./routes/allez_ronde.json').then(data => {
         return data.json();
-      }).then(data => {
-        let el;
-        el = document.createElement('div');
-        el.innerHTML = "{{route.name}}".split('')[0];
-        el.className = 'marker';
-        el.id = '{{route.id}}'
-        el.style.backgroundColor = '{{route.color}}';
-        const marker = new mapboxgl.Marker(el)
-          .setLngLat([data[0].point.lng, data[0].point.lat])
-          .addTo(map);
-        markers['{{route.id}}'] = { marker: marker, data: data };
+    }).then(routes => {
+      return Promise.all(routes.map((route) => {
+        map.addSource(`${route.id}`, {
+          type: 'geojson',
+          data: `/raw_activity/${route.routeName}`
+        });
+        map.addLayer({
+          'id': `${route.id}`,
+          'type': 'line',
+          'source': `${route.id}`,
+          'layout': {
+            'visibility': 'visible',
+            'line-join': 'round',
+            'line-cap': 'round'
+          },
+          'paint': {
+            'line-color': `${route.color}`,
+            'line-width': 3
+          }
+        });
 
-        const routeLongest = data[data.length -1].time;
-        if (routeLongest > maxTime){
-          maxTime = routeLongest;
-          // lol.... need to set this only once eventually. this is why you don't mix JS / inline ruby
-          document.getElementById('slider').setAttribute('max', maxTime)
-        }
-      });
-    {% endfor %}
+        return fetch(`./raw_activity/${route.timingData}`).then(data => {
+          return data.json();
+        }).then(data => {
+          let el;
+          el = document.createElement('div');
+          el.innerHTML = route.name.split('')[0];
+          el.className = 'marker';
+          el.id = `${route.id}`;
+          el.style.backgroundColor = route.color;
+          const marker = new mapboxgl.Marker(el)
+            .setLngLat([data[0].point.lng, data[0].point.lat])
+            .addTo(map);
+          markers[`${route.id}`] = { marker: marker, data: data };
+
+          const routeLongest = data[data.length -1].time;
+          if (routeLongest > maxTime){
+            maxTime = routeLongest;
+            // lol.... need to set this only once eventually. this is why you don't mix JS / inline ruby
+            document.getElementById('slider').setAttribute('max', maxTime)
+          }
+        });
+      }));
+    }).then(() => {
+      document.querySelectorAll('input, button').forEach((el) => { el.removeAttribute('disabled')});
+    });
   });
   const slider = document.getElementById('slider')
   function updateRoutePos(){
@@ -139,15 +157,32 @@ layout: none
       }
     });
   }
+
+  function updateRiderVisibility(checked, id) {
+    const visibility = checked ? 'visible' : 'none';
+    const opacity = checked ? 1 : 0;
+    map.setLayoutProperty(id, 'visibility', visibility);
+    document.getElementById(id).style.opacity = opacity;
+  };
+
   document.querySelectorAll('[data-route-toggle]').forEach((el) => {
     el.addEventListener('change', (e) => {
-      const visibility = e.target.checked ? 'visible' : 'none';
-      const opacity = e.target.checked ? 1 : 0;
       const id = e.target.getAttribute('data-route-id');
-      map.setLayoutProperty(id, 'visibility', visibility);
-      document.getElementById(id).style.opacity = opacity;
+      const checked = e.target.checked;
+      updateRiderVisibility(checked, id);
     });
   })
+
+  document.getElementById('check-all').addEventListener('change', (e) => {
+    const checked = e.target.checked;
+    const text = checked ? 'Unselect All ' : 'Select All ';
+    e.target.parentElement.firstChild.data = text;
+    document.querySelectorAll('[data-route-toggle]').forEach((el) => {
+      el.checked = checked;
+      const id = el.getAttribute('data-route-id');
+      updateRiderVisibility(checked, id);
+    });
+  });
 
   function tick(timestamp){
     slider.value = parseInt(slider.value, 10) + timestamp / 1000;
@@ -172,8 +207,6 @@ layout: none
       window.requestAnimationFrame(tick);
     }
   })
-
-  document.querySelectorAll('input, button').forEach((el) => { el.removeAttribute('disabled')});
 </script>
 </body>
 </html>
