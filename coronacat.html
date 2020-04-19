@@ -1,0 +1,212 @@
+---
+layout: none
+---
+
+<!doctype html>
+<html>
+<head>
+  <script src='https://api.mapbox.com/mapbox-gl-js/v1.9.1/mapbox-gl.js'></script>
+  <link href='https://api.mapbox.com/mapbox-gl-js/v1.9.1/mapbox-gl.css' rel='stylesheet' />
+  <style>
+    #sidebar {
+      position: fixed;
+      margin: 1rem 2rem;
+      padding: 1rem 2rem 1rem 0;
+      top: 0;
+      left: 0;
+      background-color: white;
+      max-height: 90%;
+      overflow-y: scroll;
+      border: 1px solid grey;
+    }
+    #sidebar ol li {
+      margin-bottom: 1rem;
+      border-bottom: 2px solid;
+    }
+    #sidebar ol li input {
+      float: right;
+      display: inline-block;
+      margin-top: 0.8rem;
+    }
+    #slider-box {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      margin: 1rem 2rem;
+      padding: 1rem 2rem;
+      background-color: white;
+      border: 1px solid grey;
+      display: flex;
+    }
+    #slider {
+      flex: 1;
+    }
+    .name {
+      font-size: 1.2rem;
+    }
+    .marker {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 1px solid white;
+      text-align: center;
+      color: white;
+    }
+    #play-button {
+      margin-right: 1rem;
+      height: 2rem;
+      width: 3rem;
+    }
+    html, body {
+      height: 100%;
+    }
+    #check-all {
+    }
+    .sidebar-header {
+      margin-left: 40px;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+  <div id='map' style='width: 100%; height: 100%; display: block'></div>
+  <div id="sidebar">
+    <div class="sidebar-header"><label>Unselect All <input checked type="checkbox" id="check-all" /></label></div>
+    <ol>
+    {% for route in site.data.coronacat_routes %}
+      <li style="border-bottom-color: {{route.color}};"><span class="name">{{route.name}}</span> <input disabled data-route-id="{{route.id}}" checked disabled data-route-toggle type="checkbox" /><br>Time: {{route.time}}<!-- <br>Distance: {{route.distance}} --></li>
+    {% endfor %}
+    </ol>
+  </div>
+  <div id="slider-box">
+    <button disabled id="play-button">▶</button><input id='slider' disabled type='range' min='0' max='6389' step='1' value='0' />
+  </div>
+<script>
+  mapboxgl.accessToken = 'pk.eyJ1IjoieXVuZ3ZpbmNlbnpvIiwiYSI6ImNqY3F4M2Y1ZzA2cnMyeGtjNGJuNjg1cWcifQ.zzM2qMUtbq7pg1jL7n5CQg';
+  var map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/streets-v9',
+    center: [-84.545061, 39.144],
+    zoom: 12,
+  });
+  const markers = {};
+  let maxTime = 0;
+  let playIcon = '▶'
+  let pauseIcon = '◼'
+  let playing = false;
+
+  map.on('load', () => {
+    fetch('./routes/coronacat.json').then(data => {
+        return data.json();
+    }).then(routes => {
+      return Promise.all(routes.map((route) => {
+        map.addSource(`${route.id}`, {
+          type: 'geojson',
+          data: `/raw_activity/${route.routeName}`
+        });
+        map.addLayer({
+          'id': `${route.id}`,
+          'type': 'line',
+          'source': `${route.id}`,
+          'layout': {
+            'visibility': 'visible',
+            'line-join': 'round',
+            'line-cap': 'round'
+          },
+          'paint': {
+            'line-color': `${route.color}`,
+            'line-width': 3
+          }
+        });
+
+        return fetch(`./raw_activity/${route.timingData}`).then(data => {
+          return data.json();
+        }).then(data => {
+          let el;
+          el = document.createElement('div');
+          el.innerHTML = route.name.split('')[0];
+          el.className = 'marker';
+          el.id = `${route.id}`;
+          el.style.backgroundColor = route.color;
+          const marker = new mapboxgl.Marker(el)
+            .setLngLat([data[0].point.lng, data[0].point.lat])
+            .addTo(map);
+          markers[`${route.id}`] = { marker: marker, data: data };
+
+          const routeLongest = data[data.length -1].time;
+          if (routeLongest > maxTime){
+            maxTime = routeLongest;
+            // lol.... need to set this only once eventually. this is why you don't mix JS / inline ruby
+            document.getElementById('slider').setAttribute('max', maxTime)
+          }
+        });
+      }));
+    }).then(() => {
+      document.querySelectorAll('input, button').forEach((el) => { el.removeAttribute('disabled')});
+    });
+  });
+  const slider = document.getElementById('slider')
+  function updateRoutePos(){
+    const sliderTime = parseInt(slider.value, 10);
+    Object.keys(markers).forEach((key) => {
+      const lastTime = markers[key].data.find(({ time }) => (time >= sliderTime));
+      if (lastTime){
+        markers[key].marker.setLngLat([lastTime.point.lng, lastTime.point.lat]);
+      }
+    });
+  }
+
+  function updateRiderVisibility(checked, id) {
+    const visibility = checked ? 'visible' : 'none';
+    const opacity = checked ? 1 : 0;
+    map.setLayoutProperty(id, 'visibility', visibility);
+    document.getElementById(id).style.opacity = opacity;
+  };
+
+  document.querySelectorAll('[data-route-toggle]').forEach((el) => {
+    el.addEventListener('change', (e) => {
+      const id = e.target.getAttribute('data-route-id');
+      const checked = e.target.checked;
+      updateRiderVisibility(checked, id);
+    });
+  })
+
+  document.getElementById('check-all').addEventListener('change', (e) => {
+    const checked = e.target.checked;
+    const text = checked ? 'Unselect All ' : 'Select All ';
+    e.target.parentElement.firstChild.data = text;
+    document.querySelectorAll('[data-route-toggle]').forEach((el) => {
+      el.checked = checked;
+      const id = el.getAttribute('data-route-id');
+      updateRiderVisibility(checked, id);
+    });
+  });
+
+  function tick(timestamp){
+    slider.value = parseInt(slider.value, 10) + timestamp / 1000;
+    updateRoutePos();
+    if (playing && slider.value < maxTime) {
+      window.requestAnimationFrame(tick)
+    } else if (slider.value >= maxTime) {
+      slider.value = 0;
+      document.getElementById('play-button').innerHTML = playIcon;
+      playing = false;
+    }
+  }
+
+  slider.addEventListener('input', updateRoutePos)
+  document.getElementById('play-button').addEventListener('click', ({ target }) => {
+    if (playing){
+      playing = false;
+      target.innerHTML = playIcon;
+    } else {
+      playing = true;
+      target.innerHTML = pauseIcon;
+      window.requestAnimationFrame(tick);
+    }
+  })
+</script>
+</body>
+</html>

@@ -3,10 +3,21 @@ require "yaml"
 require 'net/http'
 require 'httparty'
 
-COOKIE="strava cookie here for now"
-ROUTE_NAME = "allez_ronde"
+COOKIE=""
+ROUTE_NAME = "coronacat"
 
-activities = [{ id: 3318241602, name: "Mike Goertemoeller" }, { id: 3318436209, name: "James O'Loughlin" }, { id: 3318571250, name: "LBM" }]
+activities = [
+  { id: 3286084243, name: "Andreas" },
+  { id: 3286704210, name: "Charlotte" },
+  { id: 3286100220, name: "Brian (Organizer)" },
+  { id: 3290682743, name: "Michael" },
+  { id: 3279901841, name: "Daniel" },
+  { id: 3285884294, name: "Hannah" },
+  { id: 3285588960, name: "Evan" },
+  { id: 3286070678, name: "Tanner" },
+  { id: 3284741117, name: "Jesse" },
+  { id: 3281175314, name: "Vincent" },
+]
 
 activity_yaml = []
 for activity in activities do
