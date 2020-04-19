@@ -3,19 +3,19 @@ require "yaml"
 require 'net/http'
 require 'httparty'
 
-COOKIE=???
+COOKIE=""
 ROUTE_NAME = "allez_ronde"
 
-activities = [3286297313]
+activities = [{ id: 3318241602, name: "Mike Goertemoeller" }, { id: 3318436209, name: "James O'Loughlin" }, { id: 3318571250, name: "LBM" }]
 
 activity_yaml = []
 for activity in activities do
-  filename = "./raw_activity/#{activity}.json"
+  filename = "./raw_activity/#{activity[:id]}.json"
   data = nil
   if (File.exist?(filename))
     data = JSON.parse(File.read(filename))
   else
-    data = HTTParty.get("https://strava.com/activities/#{activity}/streams?stream_types[]=latlng&stream_types[]=time&stream_types[]=altitude", { headers: { Cookie: COOKIE } })
+    data = HTTParty.get("https://strava.com/activities/#{activity[:id]}/streams?stream_types[]=latlng&stream_types[]=time&stream_types[]=altitude", { headers: { Cookie: COOKIE } })
     File.write(filename, data)
   end
   geojson = {
@@ -24,7 +24,7 @@ for activity in activities do
       {
         type: "Feature",
         properties: {
-          name: activity.to_s,
+          name: activity[:id].to_s,
           type: 1
         },
         geometry: {
@@ -34,7 +34,7 @@ for activity in activities do
       }
     ]
   }
-  File.write("./raw_activity/#{activity}.geojson", geojson.to_json)
+  File.write("./raw_activity/#{activity[:id]}.geojson", geojson.to_json)
 
   timing_data = data["latlng"].map.with_index do |latlng, i|
     {
@@ -42,16 +42,19 @@ for activity in activities do
       time: data["time"][i]
     }
   end
-  File.write("./raw_activity/#{activity}-timing.json", timing_data.to_json)
+  File.write("./raw_activity/#{activity[:id]}-timing.json", timing_data.to_json)
+
+  total_time = data["time"].last
+  time_display = "#{total_time / 3600}:#{total_time / 60 % 60}:#{total_time % 60}"
 
   activity_yaml << {
-    "name" =>  activity.to_s,
+    "name" =>  activity[:name],
     "color" => "#" + Random.new.bytes(3).unpack("H*")[0],
-    "id" => activity.to_s,
+    "id" => activity[:id].to_s,
     "distance" => 0.0,
-    "time" => "0:00",
-    "routeName" => "#{activity}.geojson",
-    "timingData" => "#{activity}-timing.json",
+    "time" => time_display,
+    "routeName" => "#{activity[:id]}.geojson",
+    "timingData" => "#{activity[:id]}-timing.json",
   }
 end
 
