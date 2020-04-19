@@ -2,22 +2,37 @@ require "json"
 require "yaml"
 require 'net/http'
 require 'httparty'
+require 'csv'
+require 'open-uri'
 
-COOKIE=""
-ROUTE_NAME = "coronacat"
+COOKIE=ENV['COOKIE']
+ROUTE_NAME = "allez_ronde"
+puts COOKIE
+# activities = [
+#   { id: 3286084243, name: "Andreas" },
+#   { id: 3286704210, name: "Charlotte" },
+#   { id: 3286100220, name: "Brian (Organizer)" },
+#   { id: 3290682743, name: "Michael" },
+#   { id: 3279901841, name: "Daniel" },
+#   { id: 3285884294, name: "Hannah" },
+#   { id: 3285588960, name: "Evan" },
+#   { id: 3286070678, name: "Tanner" },
+#   { id: 3284741117, name: "Jesse" },
+#   { id: 3281175314, name: "Vincent" },
+# ]
+activities = []
 
-activities = [
-  { id: 3286084243, name: "Andreas" },
-  { id: 3286704210, name: "Charlotte" },
-  { id: 3286100220, name: "Brian (Organizer)" },
-  { id: 3290682743, name: "Michael" },
-  { id: 3279901841, name: "Daniel" },
-  { id: 3285884294, name: "Hannah" },
-  { id: 3285588960, name: "Evan" },
-  { id: 3286070678, name: "Tanner" },
-  { id: 3284741117, name: "Jesse" },
-  { id: 3281175314, name: "Vincent" },
-]
+CSV.new(open("https://docs.google.com/spreadsheets/u/0/d/12YuHFcPwVsVCPc6orXS8JGdcuoo11yQ8IoiX9HS5r3o/export?gid=206671802&format=csv"), headers: :first_row).each do |line|
+  name = line[2]
+  id = line[5]
+  if id && name
+    if (id.include?("strava.app.link"))
+      id = HTTParty.get(id)
+    end
+    id = id[/activities\/(\d+)/].split("/").last
+    activities.push({ name: name, id: id}) unless !id
+  end
+end
 
 activity_yaml = []
 for activity in activities do
