@@ -7,7 +7,51 @@ require 'open-uri'
 
 COOKIE=ENV['COOKIE']
 ROUTE_NAME = "allez_ronde"
-puts COOKIE
+
+
+colors = [
+  '#00ff00',
+  '#ff4400',
+  '#ffcc00',
+  '#ff00cc',
+  '#0088ff',
+  '#ccff00',
+  '#7400d9',
+  '#2ca600',
+  '#a65800',
+  '#6b0073',
+  '#005c73',
+  '#526600',
+  '#594700',
+  '#0a004d',
+  '#402200',
+  '#400000',
+  '#002b40',
+  '#ff4073',
+  '#36d9b8',
+  '#b22d2d',
+  '#731d34',
+  '#1a3866',
+  '#165928',
+  '#40103d',
+  '#e680ff',
+  '#ffa280',
+  '#79baf2',
+  '#dee673',
+  '#73cfe6',
+  '#e5b073',
+  '#d96c98',
+  '#6559b3',
+  '#bef2b6',
+  '#827ca6',
+  '#a67c7c',
+  '#7ca69d',
+  '#a3a67c',
+  '#3c4d39',
+  '#4b394d',
+  '#403030',
+]
+
 # activities = [
 #   { id: 3286084243, name: "Andreas" },
 #   { id: 3286704210, name: "Charlotte" },
@@ -27,7 +71,7 @@ CSV.new(open("https://docs.google.com/spreadsheets/u/0/d/12YuHFcPwVsVCPc6orXS8JG
   id = line[5]
   if id && name
     if (id.include?("strava.app.link"))
-      id = HTTParty.get(id)
+      id = HTTParty.get(id.strip)
     end
     id = id[/activities\/(\d+)/].split("/").last
     activities.push({ name: name, id: id}) unless !id
@@ -79,10 +123,13 @@ for activity in activities do
     "id" => activity[:id].to_s,
     "distance" => 0.0,
     "time" => time_display,
+    "timeSeconds" => total_time,
     "routeName" => "#{activity[:id]}.geojson",
     "timingData" => "#{activity[:id]}-timing.json",
   }
 end
+
+activity_yaml = activity_yaml.sort_by { |a| a["timeSeconds"] }.map.with_index { |a, i| a["color"] = colors[i]; a }
 
 File.write("./_data/#{ROUTE_NAME}_routes.yml", activity_yaml.to_yaml)
 File.write("./routes/#{ROUTE_NAME}.json", activity_yaml.to_json)
