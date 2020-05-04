@@ -68,13 +68,24 @@ activities = []
 
 CSV.new(open("https://docs.google.com/spreadsheets/u/0/d/12YuHFcPwVsVCPc6orXS8JGdcuoo11yQ8IoiX9HS5r3o/export?gid=206671802&format=csv"), headers: :first_row).each do |line|
   name = line[2]
-  id = line[5]
-  if id && name
-    if (id.include?("strava.app.link"))
-      id = HTTParty.get(id.strip)
+  link = line[5]
+
+  if link && name
+    #https://strava.app.link/QKAL0yuA25
+    if (link.include?("strava.app.link") )
+      page = HTTParty.get(link.strip)
+      strava_id = page[/activities\/(\d+)/].split("/").last
+      puts "strava split: " + strava_id
     end
-    id = id[/activities\/(\d+)/].split("/").last
-    activities.push({ name: name, id: id}) unless !id
+
+    #https://www.strava.com/activities/3382139871
+    if (link.include?("strava.com"))
+      strava_id = link[/activities\/(\d+)/].split("/").last
+      puts "strava_id url: " + strava_id
+    end
+
+    activities.push({ name: name, id: strava_id}) unless !link
+
   end
 end
 
@@ -104,7 +115,9 @@ for activity in activities do
       }
     ]
   }
-  File.write("./raw_activity/#{activity[:id]}.geojson", geojson.to_json)
+
+####
+File.write("./raw_activity/#{activity[:id]}.geojson", geojson.to_json)
 
   timing_data = data["latlng"].map.with_index do |latlng, i|
     {
@@ -112,10 +125,14 @@ for activity in activities do
       time: data["time"][i]
     }
   end
-  File.write("./raw_activity/#{activity[:id]}-timing.json", timing_data.to_json)
+
+###
+File.write("./raw_activity/#{activity[:id]}-timing.json", timing_data.to_json)
 
   total_time = data["time"].last
   time_display = "#{total_time / 3600}:#{total_time / 60 % 60}:#{total_time % 60}"
+
+
 
   activity_yaml << {
     "name" =>  activity[:name],
