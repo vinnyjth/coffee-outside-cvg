@@ -186,7 +186,6 @@ layout: none
 
   function tick(timestamp){
     slider.value = parseInt(slider.value, 10) + (timestamp / 1000) * 0.5;
-    console.warn(timestamp);
     updateRoutePos();
     if (playing && slider.value < maxTime) {
       window.requestAnimationFrame(tick)
