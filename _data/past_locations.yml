@@ -1,7 +1,17 @@
+- name: Spring Street Playground
+  x: 39.109599
+  y: -84.507647
+  instagram: https://www.instagram.com/p/B9k9-CNB6_u/
+
+- name: Burnett Woods
+  x: 39.140095
+  y: -84.515767
+  instagram: https://www.instagram.com/p/B94MEf1oCsp/
+
 - name: Devou Park
   x: 39.080896
   y: -84.528479
-  instagram:
+  instagram: https://www.instagram.com/p/B9QgRf5B4Zl/
 
 - name: Valley Park, Camp Washington
   x: 39.141849
